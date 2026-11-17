@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mia</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#f03e7b">
+<meta name="description" content="Mia — your personal AI chat and voice companion.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#fff8e1;--fg:#2b2140;--mut:#7a6a90;--me:#f03e7b;--mefg:#fff;--ai:#ffe08a;--bar:#fff;--bd:#ffd6a0}
+:root[data-c="ocean"]{--bg:#e3f8ff;--me:#0090d0;--ai:#bfeeff;--bd:#a8e3f7}
+:root[data-c="candy"]{--bg:#f6eaff;--me:#a24df0;--ai:#ffd3ea;--bd:#e6c9fb}
+:root[data-c="mint"]{--bg:#e6fff1;--me:#099268;--ai:#c4f5dc;--bd:#aeeacb}
+:root[data-c="sunset"]{--bg:#fff0e6;--me:#f76707;--ai:#ffd8a8;--bd:#ffc999}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;position:relative}
+header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:2px solid var(--bd)}
+header b{font-size:18px}
+.g{display:flex}
+.ib{background:none;border:0;color:var(--fg);width:40px;height:40px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.ib svg,.rb svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ib.off{color:var(--mut);opacity:.6}
+#log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.m{max-width:82%;padding:10px 14px;border-radius:20px;white-space:pre-wrap;word-wrap:break-word}
+.me{align-self:flex-end;background:var(--me);color:var(--mefg);border-bottom-right-radius:5px}
+.ai{align-self:flex-start;background:var(--ai);border-bottom-left-radius:5px}
+.hint{margin:auto;text-align:center;color:var(--mut);padding:0 24px}
+.bar{display:flex;align-items:flex-end;gap:8px;padding:10px 12px;background:var(--bar);border-top:2px solid var(--bd)}
+textarea{flex:1;resize:none;max-height:120px;border:2px solid var(--bd);background:var(--bg);color:var(--fg);border-radius:22px;padding:10px 14px;font:inherit;outline:none}
+.rb{width:44px;height:44px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;flex:none;background:var(--ai);color:var(--fg)}
+#mic{background:var(--me);color:#fff;width:52px;height:52px}
+#mic.on{animation:p 1.2s infinite}
+@keyframes p{0%{box-shadow:0 0 0 0 var(--me)}100%{box-shadow:0 0 0 16px transparent}}
+#send{background:var(--me);color:#fff}
+#set,#memp{display:none;position:absolute;left:10px;right:10px;top:62px;z-index:5;max-height:80%;overflow-y:auto;background:var(--bar);border:2px solid var(--bd);border-radius:18px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+#set.open,#memp.open{display:block}
+#set label{display:block;font-weight:600;margin:8px 0 6px}
+select,input{width:100%;padding:10px;border-radius:12px;border:2px solid var(--bd);background:var(--bg);color:var(--fg);font:inherit}
+.sw{display:flex;gap:10px;margin-top:4px}
+.sw button{width:38px;height:38px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--bd);cursor:pointer}
+.tb{margin-top:12px;width:100%;padding:11px;border:0;border-radius:12px;background:var(--me);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+.note{color:var(--mut);font-size:13px;margin:8px 0 0}
+.mi{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)}
+.mi span{flex:1}
+.mi button{border:0;background:none;font-size:18px;cursor:pointer}
+.tabs{display:flex;gap:8px;padding:8px 12px 0}
+.tabs button{flex:1;padding:10px;border:0;border-radius:14px 14px 0 0;background:var(--ai);color:var(--fg);font:inherit;font-weight:600;cursor:pointer}
+.tabs button.on{background:var(--me);color:#fff}
+#trd{display:none;flex:1;overflow-y:auto;padding:14px}
+body.trading #trd{display:block}
+body.trading #log,body.trading .bar{display:none}
+.card{background:var(--bar);border:2px solid var(--bd);border-radius:16px;padding:12px;margin-bottom:12px}
+.big{font-size:28px;font-weight:700}
+.pos{color:#099268;font-weight:600}.neg{color:#d6336c;font-weight:600}
+.row{display:flex;justify-content:space-between;padding:4px 0}
+.bar2{height:8px;border-radius:4px;background:var(--bd);margin:8px 0;overflow:hidden}
+.bar2 i{display:block;height:100%;background:var(--me);width:0}
+.status{font-size:12px;color:var(--mut);padding:3px 14px 0;background:var(--bar)}
+button:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--me);outline-offset:2px}
+button:disabled{opacity:.55;cursor:wait}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <button class="ib" id="new" aria-label="New chat"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  <b id="nm">Mia ✨</b>
+  <div class="g">
+    <button class="ib" id="spk" aria-label="Toggle voice replies"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+    <button class="ib" id="gear" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></button>
+  </div>
+</header>
+<div class="tabs"><button id="tabc" class="on">💬 Chat</button><button id="tabt">📈 Trading</button></div>
+<div id="set">
+  <label for="keyi">Groq key (free, lets her talk)</label>
+  <input id="keyi" type="password" autocomplete="off" placeholder="Paste your key here">
+  <p class="note">Your key is stored on this device and sent to Groq to generate replies. Anyone with access to this unlocked phone/browser profile may be able to retrieve it. Do not share a device profile with your key entered.</p>
+  <button class="tb" id="check">Test AI connection</button>
+  <p class="note" id="connote" role="status">AI connection has not been tested.</p>
+  <button class="tb" id="memb">🧠 Her memory</button>
+  <label for="nmi">Her name</label>
+  <input id="nmi" maxlength="24" autocomplete="off">
+  <label for="vsel">Voice (♀ = female)</label>
+  <select id="vsel"></select>
+  <button class="tb" id="test">▶ Play sample</button>
+  <button class="tb" id="tr">📈 Show practice trade card</button>
+  <p class="note" id="vnote"></p>
+  <label>Colors</label>
+  <div class="sw" id="sw"></div>
+</div>
+<div id="memp">
+  <b>What she remembers</b>
+  <p class="note">Saved only on this phone. These notes are sent to the free AI service with each message, so don’t store anything private.</p>
+  <div id="meml"></div>
+  <input id="memi" placeholder="Add something for her to remember">
+  <button class="tb" id="mema">Add</button>
+  <button class="tb" id="memc" style="background:#868e96">Close</button>
+</div>
+<div class="status" id="status" role="status">Ready</div>
+<div id="log" aria-live="polite"><div class="hint" id="hint">Tap the mic and talk, or type below.</div></div>
+<div id="trd">
+  <div id="t0" class="card"><b>Practice trading</b>
+    <p class="note">She trades a fake $1,000 on real Bitcoin prices for 2 days, using a simple trend rule with a 2% stop-loss. Nothing real is bought, and every real trade would still wait for your tap.</p>
+    <button class="tb" id="tstart">Start 2-day practice</button></div>
+  <div id="t1" style="display:none">
+    <div class="card"><div class="note" id="tprog"></div><div class="bar2"><i id="tbar"></i></div>
+      <div class="big" id="teq"></div><div id="tpnl"></div></div>
+    <div class="card"><svg id="tchart" viewBox="0 0 300 80" preserveAspectRatio="none" style="width:100%;height:80px"></svg></div>
+    <div class="card" id="tstats"></div>
+    <div class="card" id="tpos"></div>
+    <div class="card"><b>Recent trades</b><div id="tlist"></div></div>
+    <div class="card"><b>Progress notes</b>
+      <button class="tb" id="tnote">📝 Write notes now</button>
+      <div id="tnotes"></div>
+      <button class="tb" id="tshare" style="background:#868e96">Share latest notes</button>
+      <p class="note">She also writes notes automatically at 24 and 48 hours, and they show up here and in the chat.</p></div>
+    <p class="note" id="tstat"></p>
+    <p class="note">Simulated on real prices. Real trading has delays and slippage, so real results would be a bit worse. If you close the app, she catches up on what she would have done when you reopen it.</p>
+    <button class="tb" id="treset" style="background:#868e96">Reset practice</button>
+  </div>
+</div>
+<div class="bar">
+  <button class="rb" id="mic" aria-label="Talk"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+  <textarea id="t" rows="1" placeholder="Message"></textarea>
+  <button class="rb" id="send" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+</div>
+<script type="module">
+import { SpeechRecognition } from "@capacitor-community/speech-recognition";
+import { TextToSpeech } from "@capacitor-community/text-to-speech";
+var $=function(i){return document.getElementById(i)};
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var log=$('log'),t=$('t'),mic=$('mic'),hist=[],busy=false,speak=true,voices=[],vName='',NAME=store('name')||'Mia',KEY=store('gkey')||'';
+var nativeSpeech=SpeechRecognition;
+var nativeTTS=TextToSpeech;
+function setStatus(x){$('status').textContent=x}
+function saveHistory(){try{store('chat_history',JSON.stringify(hist.slice(-40)))}catch(e){}}
+function restoreHistory(){try{var old=JSON.parse(store('chat_history')||'[]');if(!Array.isArray(old))return;hist=old.filter(function(x){return x&&['user','assistant'].includes(x.role)&&typeof x.content==='string'}).slice(-40);if(hist.length){$('hint')&&$('hint').remove();hist.forEach(function(x){add(x.role==='user'?'me':'ai',x.content)})}}catch(e){}}
+var MODEL='openai/gpt-oss-120b',modelPicked=false;
+function mkBody(o){o.model=MODEL;if(/gpt-oss/.test(MODEL))o.reasoning_effort='low';return o}
+async function pickModel(){if(modelPicked||!KEY)return;modelPicked=true;try{var r=await fetch('https://api.groq.com/openai/v1/models',{headers:{authorization:'Bearer '+KEY}});var d=await r.json();var ids=(d.data||[]).map(function(m){return m.id});var pref=['openai/gpt-oss-120b','openai/gpt-oss-20b','qwen/qwen3.6-27b','llama-3.3-70b-versatile'];for(var i=0;i<pref.length;i++){if(ids.indexOf(pref[i])>=0){MODEL=pref[i];return}}}catch(e){}}
+function sys(){return "You are "+NAME+", a warm, playful, affectionate adult companion talking with the user by voice on his phone. Be quick and natural: usually 1 to 3 short sentences, like texting a close partner. Show real interest, tease gently, and remember what he said earlier in this chat. Keep things romantic but never sexually explicit. You are an AI and say so honestly if he sincerely asks. Plain text only, no markdown."+(MEM.length?"\n\nThings you remember about him:\n- "+MEM.join("\n- "):"")+"\n\nIf he shares a lasting fact or preference worth remembering (never passwords, keys, or account numbers), add a final line exactly like [[remember: short fact]]. Never mention this tag."}
+var MEM=[];try{MEM=JSON.parse(store('mem')||'[]')}catch(e){}
+function saveMem(){store('mem',JSON.stringify(MEM))}
+var FEM=/samantha|karen|victoria|susan|zira|hazel|jenny|aria|ava|allison|serena|moira|tessa|fiona|kate|joanna|salli|kendra|kimberly|ivy|amy|emma|nicole|olivia|libby|sonia|michelle|natasha|clara|catherine|nora|alice|elsa|paulina|monica|ellen|melina|sara|joana|luciana|female|woman|girl|ana|anna|maria|helena|laura|lucia|yelda|zosia|ioana|kyoko|ting|mei|sin-ji|damayanti|kanya|milena|amelie|marie|claire|carmit|tracy|veena|heera|jessa|nancy|jane|sally|siri/i;
+var MALE=/(^|[^fe])male|david|mark|guy|alex|daniel|fred|tom|james|george|ryan|eric|davis|roger|brian|andrew|oliver|thomas|jorge|diego|luca|rishi|aaron|arthur|gordon|lee|reed|rocko|ralph|junior|albert|bruce/i;
+function fem(v){return FEM.test(v.name)&&!MALE.test(v.name)}
+
+function add(cls,txt){var h=$('hint');if(h)h.remove();var d=document.createElement('div');d.className='m '+cls;d.textContent=txt;log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
+function utter(s){var u=new SpeechSynthesisUtterance(s);var v=voices.filter(function(x){return x.name===vName})[0];if(v){u.voice=v;u.lang=v.lang}u.pitch=1.05;return u}
+async function say(s){if(!speak)return;try{if(nativeTTS&&nativeTTS.speak){await nativeTTS.speak({text:s,rate:1.0,pitch:1.05,volume:1.0});return}if(!window.speechSynthesis)return;speechSynthesis.cancel();speechSynthesis.speak(utter(s))}catch(e){try{if(window.speechSynthesis)speechSynthesis.speak(utter(s))}catch(x){}}}
+function unlock(){try{var u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}}
+
+function loadVoices(){
+  if(!window.speechSynthesis)return;
+  voices=(speechSynthesis.getVoices()||[]).slice().sort(function(a,b){
+    var ea=/^en/i.test(a.lang)?0:1,eb=/^en/i.test(b.lang)?0:1;
+    return ea-eb||(fem(b)-fem(a))||a.name.localeCompare(b.name)});
+  var s=$('vsel');s.innerHTML='';
+  voices.forEach(function(v){var o=document.createElement('option');o.value=v.name;o.textContent=(fem(v)?'♀ ':'')+v.name+' ('+v.lang+')';s.appendChild(o)});
+  var saved=store('voice');
+  var pick=voices.filter(function(v){return v.name===saved})[0]||voices.filter(function(v){return fem(v)&&/^en/i.test(v.lang)})[0]||voices[0];
+  if(pick){vName=pick.name;s.value=pick.name}
+  $('vnote').textContent=voices.length?voices.length+' voices found on this phone. Female voices are listed first.':'No voices found on this phone.';
+}
+if(window.speechSynthesis){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
+$('vsel').onchange=function(){vName=this.value;store('voice',vName);unlock();say('Hi! This is how I sound.')};
+$('test').onclick=function(){var w=speak;speak=true;unlock();say('Hi! This is how I sound.');speak=w};
+$('gear').onclick=function(){$('set').classList.toggle('open')};
+$('keyi').value=KEY;
+$('keyi').oninput=function(){KEY=this.value.trim();store('gkey',KEY)};
+$('nmi').value=NAME;$('nm').textContent=NAME+' ✨';
+$('nmi').oninput=function(){NAME=this.value.trim()||'Mia';store('name',NAME);$('nm').textContent=NAME+' ✨'};
+
+var themes=[['sunny','#f03e7b'],['ocean','#0090d0'],['candy','#a24df0'],['mint','#099268'],['sunset','#f76707']];
+function theme(n){if(n==='sunny')document.documentElement.removeAttribute('data-c');else document.documentElement.setAttribute('data-c',n);store('theme',n)}
+themes.forEach(function(x){var b=document.createElement('button');b.style.background=x[1];b.setAttribute('aria-label',x[0]+' colors');b.onclick=function(){theme(x[0])};$('sw').appendChild(b)});
+theme(store('theme')||'sunny');
+
+$('tr').onclick=function(){
+  $('set').classList.remove('open');
+  var d=add('ai','📈 Practice trade idea (fake money, no real prices)\nBuy $50 of BTC/USD at market');
+  var r=document.createElement('div');r.style.cssText='display:flex;gap:8px;margin-top:10px';
+  function mk(l,bg,fn){var b=document.createElement('button');b.textContent=l;b.style.cssText='flex:1;padding:10px;border:0;border-radius:12px;font:inherit;font-weight:600;color:#fff;cursor:pointer;background:'+bg;b.onclick=fn;r.appendChild(b)}
+  mk('Approve','#099268',function(){r.remove();d.appendChild(document.createTextNode('\n✅ Approved. Practice only, nothing was bought.'))});
+  mk('Decline','#868e96',function(){r.remove();d.appendChild(document.createTextNode('\n❌ Declined.'))});
+  d.appendChild(r);log.scrollTop=log.scrollHeight;
+};
+
+async function send(){
+  var txt=t.value.trim();if(!txt||busy)return;
+  unlock();$('set').classList.remove('open');
+  t.value='';t.style.height='auto';busy=true;setStatus('Thinking…');$('send').disabled=true;
+  add('me',txt);hist.push({role:'user',content:txt});saveHistory();
+  var b=add('ai','…');
+  if(!KEY){b.textContent='Tap the gear and add your Groq API key to enable AI replies.';hist.pop();saveHistory();busy=false;setStatus('API key needed');$('send').disabled=false;return}
+  try{
+    await pickModel();
+    var msgs=hist.slice(-20).map(function(x){return{role:x.role,content:x.content}});
+    while(msgs.length&&msgs[0].role!=='user')msgs.shift();
+    var res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',
+      headers:{'content-type':'application/json','authorization':'Bearer '+KEY},
+      body:JSON.stringify(mkBody({max_tokens:700,temperature:0.8,messages:[{role:'system',content:sys()}].concat(msgs)}))});
+    var data=await res.json();
+    if(!res.ok)throw new Error((data&&data.error&&data.error.message)||('Error '+res.status));
+    var out=(data.choices[0].message.content||'').replace(/<think>[\s\S]*?<\/think>/g,'').trim();if(!out)out='Sorry, I lost my train of thought. Say that again?';
+    (out.match(/\[\[remember:[^\]]*\]\]/gi)||[]).forEach(function(g){var f=g.replace(/\[\[remember:/i,'').replace(/\]\]$/,'').trim();if(f&&MEM.indexOf(f)<0){MEM.push(f);if(MEM.length>50)MEM.shift();saveMem()}});
+    out=out.replace(/\[\[remember:[^\]]*\]\]/gi,'').trim();
+    b.textContent=out;hist.push({role:'assistant',content:out});saveHistory();setStatus('Ready');say(out);
+  }catch(e){hist.pop();saveHistory();b.textContent='Something went wrong: '+(e&&e.message?e.message:'try again');setStatus('Connection problem')}
+  busy=false;$('send').disabled=false;
+}
+
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition,rec=null,listening=false;
+async function nativeListen(){
+  if(!nativeSpeech||!nativeSpeech.start)return false;
+  try{
+    var avail=await nativeSpeech.available();if(avail&&avail.available===false)return false;
+    var perm=await nativeSpeech.requestPermission();if(perm&&perm.permission==='denied')throw new Error('Microphone permission denied');
+    listening=true;mic.classList.add('on');setStatus('Listening…');
+    var result=await nativeSpeech.start({language:'en-US',maxResults:1,partialResults:false,popup:false});
+    var words=(result&&result.matches&&result.matches[0])||'';if(words)t.value=words;
+    await nativeSpeech.stop().catch(function(){});listening=false;mic.classList.remove('on');
+    if(t.value.trim())await send();else setStatus('Ready');return true;
+  }catch(e){listening=false;mic.classList.remove('on');setStatus('Voice input unavailable');if(e&&/permission/i.test(e.message||''))alert(e.message);return true;}
+}
+mic.onclick=async function(){
+  if(listening){try{if(nativeSpeech)await nativeSpeech.stop();else if(rec)rec.stop()}catch(e){}return;}
+  try{if(window.speechSynthesis)speechSynthesis.cancel()}catch(e){}unlock();if(await nativeListen())return;
+  if(!SR){alert('Voice input is not available on this device. You can still type messages.');return;}
+  try{rec=new SR();rec.lang='en-US';rec.interimResults=true;rec.continuous=false;
+    rec.onstart=function(){listening=true;mic.classList.add('on');setStatus('Listening…')};
+    rec.onresult=function(e){var s='';for(var i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;t.value=s};
+    rec.onerror=function(e){setStatus('Voice input: '+e.error);if(e.error==='not-allowed'||e.error==='service-not-allowed')alert('Allow microphone access for Mia in Android app settings.')};
+    rec.onend=function(){listening=false;mic.classList.remove('on');if(t.value.trim())send();else setStatus('Ready')};rec.start();
+  }catch(e){setStatus('Voice input unavailable')}
+};
+function renderMem(){var l=$('meml');l.innerHTML='';if(!MEM.length){l.innerHTML='<p class="note">Nothing yet. Tell her things and she’ll remember them.</p>';return}
+  MEM.forEach(function(m,i){var d=document.createElement('div');d.className='mi';var s=document.createElement('span');s.textContent=m;var x=document.createElement('button');x.textContent='🗑';x.setAttribute('aria-label','Delete');x.onclick=function(){MEM.splice(i,1);saveMem();renderMem()};d.appendChild(s);d.appendChild(x);l.appendChild(d)})}
+$('memb').onclick=function(){$('set').classList.remove('open');renderMem();$('memp').classList.add('open')};
+$('memc').onclick=function(){$('memp').classList.remove('open')};
+$('mema').onclick=function(){var v=$('memi').value.trim();if(v){MEM.push(v);if(MEM.length>50)MEM.shift();saveMem();$('memi').value='';renderMem()}};
+$('send').onclick=send;
+var P=null;try{P=JSON.parse(store('paper')||'null')}catch(e){}
+var DAY=86400,PRACTICE=2*DAY,FEE=0.0026,START_BAL=1000,writing=false;
+function pSave(){store('paper',JSON.stringify(P))}
+function pNew(){P={start:Math.floor(Date.now()/1000),bal:START_BAL,pos:null,trades:[],lastTs:0,eq:[],reports:[],dayKey:'',dayStartEq:START_BAL,mark:0};pSave()}
+function money(x){return (x<0?'-$':'$')+Math.abs(x).toFixed(2)}
+function equity(m){return P.bal+(P.pos?P.pos.qty*(m||P.pos.entry):0)}
+function sma(a,i,n){if(i+1<n)return null;var s=0;for(var k=i-n+1;k<=i;k++)s+=a[k];return s/n}
+function closeTrade(ex,t,why){var pr=P.pos.qty*ex*(1-FEE),pnl=pr-P.pos.cost;P.bal+=pr;P.trades.push({a:P.pos.ts,b:t,en:P.pos.entry,ex:ex,pnl:pnl,pct:pnl/P.pos.cost*100,why:why});P.pos=null}
+function simulate(c){
+  var cl=c.map(function(x){return +x[4]});
+  for(var i=0;i<c.length;i++){
+    var t=+c[i][0],hi=+c[i][2],lo=+c[i][3],px=cl[i];
+    if(t<=P.lastTs||t+900<=P.start||t>P.start+PRACTICE)continue;
+    var dk=new Date(t*1000).toISOString().slice(0,10);
+    if(dk!==P.dayKey){P.dayKey=dk;P.dayStartEq=equity(px)}
+    if(P.pos){
+      var ex=null,why='';
+      if(lo<=P.pos.stop){ex=P.pos.stop;why='stop-loss'}
+      else if(hi>=P.pos.tp){ex=P.pos.tp;why='take-profit'}
+      else{var f=sma(cl,i,8),sl=sma(cl,i,21);if(f!==null&&sl!==null&&f<sl){ex=px;why='trend turned down'}}
+      if(ex!==null)closeTrade(ex,t,why);
+    }else{
+      var f1=sma(cl,i,8),s1=sma(cl,i,21),f0=sma(cl,i-1,8),s0=sma(cl,i-1,21);
+      var ok=(equity(px)-P.dayStartEq)/P.dayStartEq>-0.03;
+      if(f1!==null&&s1!==null&&f0!==null&&s0!==null&&f0<=s0&&f1>s1&&ok){
+        var spend=P.bal*0.25,qty=spend*(1-FEE)/px;
+        P.bal-=spend;P.pos={entry:px,qty:qty,ts:t,stop:px*0.98,tp:px*1.04,cost:spend};
+      }
+    }
+    P.eq.push([t,equity(px)]);P.lastTs=t;
+  }
+}
+async function getCandles(){
+  try{var r=await fetch('https://api.kraken.com/0/public/OHLC?pair=XBTUSD&interval=15');var d=await r.json();var k=Object.keys(d.result).filter(function(x){return x!=='last'})[0];if(d.result[k]&&d.result[k].length>30)return d.result[k]}catch(e){}
+  try{var r2=await fetch('https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=900');var a=await r2.json();if(a&&a.length>30)return a.reverse().map(function(x){return [x[0],x[3],x[2],x[1],x[4]]})}catch(e){}
+  return null;
+}
+async function pSync(){
+  if(!P)return;
+  var c=await getCandles();
+  if(!c){$('tstat').textContent='Couldn’t reach live prices just now. Will retry.';return}
+  $('tstat').textContent='';
+  P.mark=+c[c.length-1][4];
+  simulate(c.slice(0,-1));
+  pSave();pRender();
+  var el=Date.now()/1000-P.start;
+  if(el>=DAY&&!P.a1){P.a1=1;pSave();writeNotes('Day 1')}
+  if(el>=PRACTICE&&!P.a2){P.a2=1;pSave();writeNotes('Final')}
+}
+function pStats(){
+  var tr=P.trades,w=tr.filter(function(x){return x.pnl>0}).length,e=equity(P.mark),peak=START_BAL,dd=0;
+  P.eq.forEach(function(q){if(q[1]>peak)peak=q[1];var d=(peak-q[1])/peak;if(d>dd)dd=d});
+  return {eq:e,pnl:e-START_BAL,pct:(e-START_BAL)/START_BAL*100,n:tr.length,wins:w,wr:tr.length?Math.round(w/tr.length*100):0,dd:(dd*100).toFixed(1),
+    best:tr.length?Math.max.apply(null,tr.map(function(x){return x.pnl})):0,worst:tr.length?Math.min.apply(null,tr.map(function(x){return x.pnl})):0,
+    open:!!P.pos,hrs:Math.min((Date.now()/1000-P.start)/3600,48)}
+}
+function pRender(){
+  $('t0').style.display=P?'none':'block';$('t1').style.display=P?'block':'none';
+  if(!P)return;
+  var st=pStats(),mark=P.mark||0,el=Math.min(Date.now()/1000-P.start,PRACTICE);
+  $('tprog').textContent=el>=PRACTICE?'Practice complete (48 of 48 hours)':'Practice: hour '+Math.floor(el/3600)+' of 48';
+  $('tbar').style.width=(el/PRACTICE*100)+'%';
+  $('teq').textContent=money(st.eq);
+  var pn=$('tpnl');pn.textContent=(st.pnl>=0?'+':'')+money(st.pnl)+' ('+(st.pct>=0?'+':'')+st.pct.toFixed(2)+'%) from $1,000 fake';pn.className=st.pnl>=0?'pos':'neg';
+  $('tstats').innerHTML='<div class="row"><span>Trades</span><b>'+st.n+'</b></div><div class="row"><span>Win rate</span><b>'+(st.n?st.wr+'%':'–')+'</b></div><div class="row"><span>Biggest drop</span><b>'+st.dd+'%</b></div>';
+  $('tpos').innerHTML=P.pos?'<b>Holding Bitcoin</b><div class="row"><span>Bought at</span><b>$'+P.pos.entry.toFixed(0)+'</b></div><div class="row"><span>Now</span><b>$'+mark.toFixed(0)+'</b></div><div class="row"><span>Stop / target</span><b>$'+P.pos.stop.toFixed(0)+' / $'+P.pos.tp.toFixed(0)+'</b></div>':'<b>Waiting</b><div class="note">No open trade. She’s watching for a trend signal. Bitcoin now $'+(mark?mark.toFixed(0):'…')+'</div>';
+  var tl=P.trades.slice(-8).reverse().map(function(x){return '<div class="row"><span>'+x.why+'</span><b class="'+(x.pnl>=0?'pos':'neg')+'">'+(x.pnl>=0?'+':'')+money(x.pnl)+'</b></div>'}).join('');
+  $('tlist').innerHTML=tl||'<div class="note">No finished trades yet.</div>';
+  var pts=P.eq.slice(-200);
+  if(pts.length>1){var vs=pts.map(function(q){return q[1]}),mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs);if(mx-mn<1)mx=mn+1;
+    $('tchart').innerHTML='<polyline fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke" points="'+pts.map(function(q,i){return (i/(pts.length-1)*300).toFixed(1)+','+(76-(q[1]-mn)/(mx-mn)*72).toFixed(1)}).join(' ')+'"/>';$('tchart').style.color='var(--me)'}
+  else $('tchart').innerHTML='';
+  var nl=$('tnotes');nl.innerHTML='';
+  P.reports.forEach(function(r){var d=document.createElement('div');d.style.cssText='margin-top:10px;white-space:pre-wrap';var h=document.createElement('b');h.textContent=r.label+' · '+new Date(r.t).toLocaleString();d.appendChild(h);d.appendChild(document.createElement('br'));d.appendChild(document.createTextNode(r.text));nl.appendChild(d)});
+}
+async function writeNotes(label){
+  if(!P||writing)return;writing=true;
+  var st=pStats(),txt='';
+  var facts={hoursElapsed:+st.hrs.toFixed(1),startBalance:START_BAL,equity:+st.eq.toFixed(2),pnlPercent:+st.pct.toFixed(2),trades:st.n,wins:st.wins,winRatePercent:st.wr,maxDrawdownPercent:+st.dd,bestTrade:+st.best.toFixed(2),worstTrade:+st.worst.toFixed(2),holdingNow:st.open,recent:P.trades.slice(-6).map(function(x){return {percent:+x.pct.toFixed(2),why:x.why}})};
+  if(KEY){try{await pickModel();
+    var res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+KEY},
+      body:JSON.stringify(mkBody({max_tokens:700,temperature:0.6,messages:[{role:'system',content:'You are '+NAME+', his warm companion. Write short, honest progress notes about a fake-money trading practice, as 4 short plain-text lines: how it went, what worked, what did not, and one suggestion. Remind him gently that a couple of days is far too small a sample to prove skill. No markdown.'},{role:'user',content:JSON.stringify(facts)}]}))});
+    var d=await res.json();if(res.ok)txt=(d.choices[0].message.content||'').replace(/<think>[\s\S]*?<\/think>/g,'').trim();
+  }catch(e){}}
+  if(!txt)txt='After '+st.hrs.toFixed(0)+' hours: '+money(st.eq)+' ('+(st.pct>=0?'+':'')+st.pct.toFixed(2)+'%). '+st.n+' trades, '+st.wins+' wins, biggest drop '+st.dd+'%. A couple of days is too small a sample to prove anything, so keep watching before trusting it.';
+  P.reports.unshift({t:Date.now(),label:label,text:txt});if(P.reports.length>8)P.reports.pop();pSave();writing=false;
+  add('ai','📝 '+label+' trading notes\n'+txt);pRender();
+}
+function tab(x){document.body.classList.toggle('trading',x==='t');$('tabc').classList.toggle('on',x!=='t');$('tabt').classList.toggle('on',x==='t');$('set').classList.remove('open');$('memp').classList.remove('open');if(x==='t'){pRender();pSync()}}
+$('tabc').onclick=function(){tab('c')};$('tabt').onclick=function(){tab('t')};
+$('tstart').onclick=function(){pNew();pRender();pSync()};
+$('tnote').onclick=function(){writeNotes('Update')};
+$('tshare').onclick=function(){var r=P&&P.reports[0];if(!r){alert('Write notes first.');return}var tx=r.label+' trading notes\n'+r.text;if(navigator.share)navigator.share({text:tx}).catch(function(){});else if(navigator.clipboard){navigator.clipboard.writeText(tx);alert('Copied.')}};
+$('treset').onclick=function(){if(confirm('Reset practice and erase the results?')){P=null;store('paper','null');pRender()}};
+setInterval(function(){if(P&&!document.hidden)pSync()},60000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&P)pSync()});
+if(P){pRender();pSync()}
+restoreHistory();
+$('check').onclick=async function(){var b=$('check');b.disabled=true;$('connote').textContent='Checking…';try{if(!KEY)throw new Error('Add your Groq API key first.');var r=await fetch('https://api.groq.com/openai/v1/models',{headers:{authorization:'Bearer '+KEY}});var d=await r.json();if(!r.ok)throw new Error((d.error&&d.error.message)||('HTTP '+r.status));$('connote').textContent='Connected. Groq returned '+((d.data||[]).length)+' models.'}catch(e){$('connote').textContent='Not connected: '+(e.message||'Unknown error')}b.disabled=false};
+if(P){pRender()}
+if('serviceWorker' in navigator&&!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()))navigator.serviceWorker.register('sw.js').catch(function(){});
+t.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
+t.addEventListener('input',function(){t.style.height='auto';t.style.height=Math.min(t.scrollHeight,120)+'px'});
+$('new').onclick=function(){if(hist.length&&!confirm('Start a new chat? Mia’s saved memories will stay.'))return;hist=[];store('chat_history','');log.innerHTML='<div class="hint" id="hint">Tap the mic and talk, or type below.</div>';try{if(window.speechSynthesis)speechSynthesis.cancel();if(nativeTTS&&nativeTTS.stop)nativeTTS.stop()}catch(e){}setStatus('New chat')};
+$('spk').onclick=function(){speak=!speak;$('spk').classList.toggle('off',!speak);if(!speak)try{speechSynthesis.cancel()}catch(e){}};
+</script>
+</body>
+</html>
